@@ -1,0 +1,50 @@
+{
+    "reqs": [
+        {
+            "name": "req1",
+            "commands": [
+                {
+                    "type": "message_startswith_requirement",
+                    "ignore": false,
+                    "negation": false,
+                    "case_sensitive": false,
+                    "args": [
+                        {
+                            "type": "string",
+                            "content": "?off"
+                        }
+                    ]
+                },
+                {
+                    "type": "author_id_requirement",
+                    "ignore": false,
+                    "negation": false,
+                    "args": [
+                        {
+                            "type": "int",
+                            "content": "330392410964361217"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "functions": [
+        {
+            "name": "fun1",
+            "commands": [
+                {
+                    "type": "client_logout",
+                    "ignore": false
+                }
+            ]
+        }
+    ],
+    "commands": [
+        {
+            "description": "turning off bot",
+            "req_name": "req1",
+            "fun_name": "fun1"
+        }
+    ]
+}
