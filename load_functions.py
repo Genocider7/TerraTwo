@@ -1,4 +1,5 @@
 import json, sys
+from command_parsing import *
 
 what_uses_message = ['message_startswith_requirement', 'custom']
 what_uses_author = ['author_id_requirement', 'custom']
@@ -6,7 +7,11 @@ what_uses_channel = ['custom']
 what_uses_client = ['client_logout', 'custom']
 async_functions = ['client_logout', 'custom']
 
-function_dir = {}
+function_file = None
+function_dict = {}
+
+def str_to_class(classname : str, module = __name__):
+    return getattr(sys.modules[module], classname, None)
 
 def uses_message(commands):
     for command in commands:
@@ -49,13 +54,13 @@ def is_async(commands):
     return False
 
 def get_req_by_name(req_name):
-    for req in function_dir['reqs']:
+    for req in function_dict['reqs']:
         if req['name'] == req_name:
             return req
     return False
 
 def get_fun_by_name(fun_name):
-    for fun in function_dir['functions']:
+    for fun in function_dict['functions']:
         if fun['name'] == fun_name:
             return fun
     return False
@@ -67,88 +72,54 @@ def ind(number = 1):
         ret += str
     return ret
 
-def create_functions_from_file(fp):
-    global function_dir
+def load_function_dict(fp):
+    global function_dict
     function_json_file = open(fp, "r")
-    function_dir = json.loads(function_json_file.read())
+    function_dict = json.loads(function_json_file.read())
     function_json_file.close()
 
-    function_file = open('functions.py', 'w')
+def write_function_def(req_fun, function_file):
+    if is_async(req_fun['commands']):
+        function_file.write('async ')
+    function_file.write('def ' + req_fun['name'] + '(ctx):\n')
 
-    for req in function_dir['reqs']:
-        if is_async(req['commands']):
-            function_file.write('async ')
-        function_file.write('def ' + req['name'] + '(ctx):\n')
-        if uses_message(req['commands']):
-            function_file.write(ind() + '_message = ctx[\'message\']\n')
-        if uses_author(req['commands']):
-            function_file.write(ind() + '_author = ctx[\'author\']\n')
-        if uses_channel(req['commands']):
-            function_file.write(ind() + '_channel = ctx[\'channel\']\n')
-        if uses_client(req['commands']):
-            function_file.write(ind() + '_client = ctx[\'client\']\n')
+def write_local_vars(req_fun, function_file):
+    if uses_message(req_fun['commands']):
+        function_file.write(ind() + '_message = ctx[\'message\']\n')
+    if uses_author(req_fun['commands']):
+        function_file.write(ind() + '_author = ctx[\'author\']\n')
+    if uses_channel(req_fun['commands']):
+        function_file.write(ind() + '_channel = ctx[\'channel\']\n')
+    if uses_client(req_fun['commands']):
+        function_file.write(ind() + '_client = ctx[\'client\']\n')
+
+def create_requirements():
+    for req in function_dict['reqs']:
+        write_function_def(req, function_file)
+        write_local_vars(req, function_file)
         for command in req['commands']:
             if command['ignore']:
                 continue
-
-            if command['type'] == 'message_startswith_requirement':
-                function_file.write(ind() + 'if ')
-                if not command['negation']:
-                    function_file.write('not ')
-                function_file.write('_message')
-                if not command['case_sensitive']:
-                    function_file.write('.lower()')
-                function_file.write('.startswith(')
-                if command['args'][0]['type'] == 'string':
-                    function_file.write('\'' + command['args'][0]['content'] + '\'')
-                else:
-                    function_file.write('str(' + command['args'][0]['content'] + ')')
-                if not command['case_sensitive']:
-                    function_file.write('.lower()')
-                function_file.write('):\n')
-                function_file.write(ind(2) + 'return False\n')
-
-            elif command['type'] == 'author_id_requirement':
-                function_file.write(ind() + 'if ')
-                if not command['negation']:
-                    function_file.write('not ')
-                function_file.write('_author.id == ')
-                if command['args'][0]['type'] == 'int':
-                    function_file.write(command['args'][0]['content'] + ':\n')
-                elif command['args'][0]['type'] == 'string':
-                    function_file.write('int(\'' + command['args'][0]['content'] + '\'):\n')
-                else:
-                    function_file.write('int(' + command['args'][0]['content'] + '):\n')
-                function_file.write(ind(2) + 'return False\n')
-
-            #elif command['type'] == ...
+            command_class = str_to_class(command['type'], 'command_parsing')
+            if command_class != None:
+                command_class.write_command(command, function_file)
         function_file.write(ind() + 'return True\n\n')
 
-
-    for fun in function_dir['functions']:
-        if is_async(fun['commands']):
-            function_file.write('async ')
-        function_file.write('def ' + fun['name'] + '(ctx):\n')
-        if uses_message(fun['commands']):
-            function_file.write(ind() + '_message = ctx[\'message\']\n')
-        if uses_author(fun['commands']):
-            function_file.write(ind() + '_author = ctx[\'author\']\n')
-        if uses_channel(fun['commands']):
-            function_file.write(ind() + '_channel = ctx[\'channel\']\n')
-        if uses_client(fun['commands']):
-            function_file.write(ind() + '_client = ctx[\'client\']\n')
+def create_functions():
+    for fun in function_dict['functions']:
+        write_function_def(fun, function_file)
+        write_local_vars(fun, function_file)
         for command in fun['commands']:
             if command['ignore']:
                 continue
-
-            if command['type'] == 'client_logout':
-                function_file.write(ind() + 'await _client.close()\n')
-
-            #elif command['type'] == ...
+            command_class = str_to_class(command['type'], 'command_parsing')
+            if command_class != None:
+                command_class.write_command(command, function_file)
         function_file.write('\n')
 
+def create_commands():
     function_file.write('commands = [\n')
-    for command in function_dir['commands']:
+    for command in function_dict['commands']:
         function_file.write(ind() + '{\n')
         if not command['description'] == '':
             function_file.write(ind(2) + '#' + command['description'] + '\n')
@@ -173,13 +144,17 @@ def create_functions_from_file(fp):
         function_file.write(ind() + '},\n')
     function_file.write(']')
 
-    function_file.close()
-
 def main():
+    global function_file
     if len(sys.argv) < 2:
         print("Usage: " + sys.argv[0] + " filepath")
         return
-    create_functions_from_file(sys.argv[1])
+    load_function_dict(sys.argv[1])
+    function_file = open('functions.py', 'w')
+    create_requirements()
+    create_functions()
+    create_commands()
+    function_file.close()
 
 if __name__ == "__main__":
     main()
