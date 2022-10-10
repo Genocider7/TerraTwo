@@ -1,11 +1,11 @@
 import json, sys
 from command_parsing import *
 
-what_uses_message = ['message_startswith_requirement', 'custom']
-what_uses_author = ['author_id_requirement', 'custom']
-what_uses_channel = ['custom']
-what_uses_client = ['client_logout', 'custom']
-async_functions = ['client_logout', 'custom']
+what_uses_message = ['message_startswith_requirement', 'send_message', 'custom']
+what_uses_author = ['author_id_requirement', 'send_message', 'custom']
+what_uses_channel = ['send_message', 'custom']
+what_uses_client = ['client_logout', 'send_message', 'custom']
+async_functions = ['client_logout', 'send_message', 'custom']
 
 function_file = None
 function_dict = {}
