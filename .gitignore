@@ -1,6 +1,6 @@
 TOKEN
-__pycache__
+**/__pycache__
 functions_raw.py
 functions.py
-command_parsing/__pycache__
 functions.json
+**.diff

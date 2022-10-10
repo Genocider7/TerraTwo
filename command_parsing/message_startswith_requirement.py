@@ -1,3 +1,7 @@
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "\\share")
+from functions_shared import escape_message_string
+
 def write_command(command, function_file):
     function_file.write('    if ')
     if not command['negation']:
@@ -7,7 +11,8 @@ def write_command(command, function_file):
         function_file.write('.lower()')
     function_file.write('.startswith(')
     if command['args'][0]['type'] == 'string':
-        function_file.write('\'' + command['args'][0]['content'] + '\'')
+        escaped_command = escape_message_string(command['args'][0]['content'])
+        function_file.write(escaped_command)
     else:
         function_file.write('str(' + command['args'][0]['content'] + ')')
     if not command['case_sensitive']:

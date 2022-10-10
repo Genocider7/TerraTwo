@@ -86,6 +86,24 @@ class client_logout extends reqfun_command
     }
 }
 
+class send_message extends reqfun_command
+{
+    constructor(arg1, arg2)
+    {
+        super("send_message");
+        this.args = [arg1, arg2];
+    }
+
+    constructor(channel_type, channel, message_type, message)
+    {
+        super("send_message");
+        this.args =[
+            new command_arg(channel_type, channel),
+            new command_arg(message_type, message)
+        ];
+    }
+}
+
 class command_arg
 {
     constructor(type, content)
