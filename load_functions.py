@@ -1,6 +1,7 @@
 import json, sys
 from command_parsing import *
 from constants import what_uses_author, what_uses_channel, what_uses_client, what_uses_message, async_functions
+from share.functions_shared import ind
 
 function_file = None
 function_dict = {}
@@ -60,13 +61,6 @@ def get_fun_by_name(fun_name):
             return fun
     return False
 
-def ind(number = 1):
-    str = '    '
-    ret = ''
-    for i in range(number):
-        ret += str
-    return ret
-
 def load_function_dict(fp):
     global function_dict
     function_json_file = open(fp, "r")
@@ -118,6 +112,7 @@ def create_commands():
         function_file.write(ind() + '{\n')
         if not command['description'] == '':
             function_file.write(ind(2) + '#' + command['description'] + '\n')
+        function_file.write(ind(2) + '\'event\': \'' + command['event'] + '\', \n')
         function_file.write(ind(2) + '\'req\': ' + command['req_name'] + ',\n')
         function_file.write(ind(2) + '\'function\': ' + command['fun_name'] + ',\n')
         function_file.write(ind(2) + '\'req_cor\': ')

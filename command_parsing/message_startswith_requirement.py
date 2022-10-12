@@ -1,9 +1,11 @@
+#Wymóg do eventu on_message
+
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "\\share")
-from functions_shared import escape_message_string
+from functions_shared import escape_message_string, ind
 
 def write_command(command, function_file):
-    function_file.write('    if ')
+    function_file.write(ind() + 'if ')
     if not command['negation']:
         function_file.write('not ')
     function_file.write('_message')
@@ -18,4 +20,4 @@ def write_command(command, function_file):
     if not command['case_sensitive']:
         function_file.write('.lower()')
     function_file.write('):\n')
-    function_file.write('        return False\n')
+    function_file.write(ind(2) + 'return False\n')
