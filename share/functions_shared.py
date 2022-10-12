@@ -8,3 +8,10 @@ def escape_message_string(message : str):
     for match in matches:
         escaped_message = escaped_message.replace("t2{message" + match + "}", "\" + _message" + match + " + \"")
     return "\"" + escaped_message + "\""
+
+def ind(number = 1):
+    str = '    '
+    ret = ''
+    for i in range(number):
+        ret += str
+    return ret

@@ -23,6 +23,8 @@ async def on_message(message):
         'channel': message.channel
     }
     for command in commands:
+        if command['event'] != 'on_message':
+            continue
         if (command['req_cor']):
             activated = await command['req'](ctx)
         else:
